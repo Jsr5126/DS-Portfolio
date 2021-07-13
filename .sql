@@ -76,18 +76,18 @@ FROM Table_InTransit
 WHERE `Vendor Code` in ('VEN 1', 'VEN 2', 'VEN 3')
 GROUP BY 
   `Shipment ID`
-  , `Inbound Delivery Create Date-Time`
-  , TIME(`Inbound Delivery Create Date-Time`)
-HAVING sum(`Delivery quantity`) > 30
+  ,`Inbound Delivery Create Date-Time`
+  ,TIME(`Inbound Delivery Create Date-Time`)
+HAVING SUM(`Delivery quantity`) > 30
 AND DlvTime > '12:00:00';
 
 /* Subquery */
 DROP TABLE IF EXISTS Tbl.NullStuff;
 CREATE temporary TABLE Tbl.NullStuff
-SELECT COUNT(SID)AS NotNullCount
-      ,(SELECT count(SID) 
+SELECT COUNT('External Delivery ID')AS NotNullCount
+      ,(SELECT count('External Delivery ID') 
        FROM Table_ComplianceAnalysis_2 
-       WHERE `Tracking#` IS NULL) AS NullCount
+       WHERE `Tracking#` IS null) AS NullCount
 FROM Table_ComplianceAnalysis_2
 WHERE `Tracking#` IS NOT null
 
