@@ -1,0 +1,115 @@
+---
+title: "Visualizations #2"
+author: "Jason Reese"
+---
+
+```{r setup, include=FALSE}
+library(lessR)
+library(tidyverse)
+```
+
+```{r read, include=FALSE}
+d <- Read("https://raw.githubusercontent.com/Jsr5126/DS-Portfolio/main/Cars93.csv")
+```
+
+```{r Histogram LessR}
+Histogram(MPGcity)
+```
+
+```{r Histogram ggplot}
+ggplot(d, aes(MPGcity)) + geom_histogram()
+```
+```{r Histogram LessR adjusted bin width}
+Histogram(MPGcity, bin_width=2)
+```
+```{r Histogram ggplot}
+ggplot(d, aes(MPGcity)) + geom_histogram(binwidth=2)
+```
+
+```{r Histogram ggplot overlapping}
+ggplot(d, aes(MPGcity, fill=Source)) + 
+  geom_histogram(position="identity", binwidth=2, alpha=0.35)
+```
+
+```{r Trellis LessR}
+Histogram(MPGcity, by1=Source, bin_width=2)
+```
+```{r Trellis ggplot}
+ggplot(d, aes(MPGcity)) + 
+  geom_histogram(binwidth=2) +
+  facet_grid(rows=vars(Source))
+```
+
+```{r Histogram LessR density curve}
+Histogram(MPGcity, density=TRUE, bin_width=2)
+```
+
+```{r Histogram ggplot density curve}
+ggplot(d, aes(x=MPGcity)) + 
+ geom_histogram(aes(y=..density..), color="white", binwidth=2)+
+ geom_density(alpha=.15, fill="red")
+```
+
+```{r Histogram LessR overlapping density curve}
+ttest(MPGcity ~ Source)
+```
+
+```{r BoxPlot LessR}
+BoxPlot(MPGcity, by1=Source, bin_width=2)
+```
+
+```{r Violin/Box/Scatterplot LessR}
+Plot(MPGcity, by1=Source, bin_width=2)
+```
+
+```{r 95% Scatterplot Ellipse LessR}
+Plot(MPGhiway, HP, ellipse=.95)
+```
+
+```{r 95% Scatterplot Ellipse ggplot}
+ggplot(d, aes(MPGhiway, HP)) + 
+  geom_point() +
+  stat_ellipse(type="norm", level=.95)
+```
+
+```{r Trellis Scatterplot LessR}
+Plot(MPGhiway, HP, by1=Source, fit="lm")
+```
+```{r Trellis Scatterplot LessR}
+Plot(c(MPGhiway, HP),Source, fit="lm")
+```
+
+```{r Scatterplot 3rd variable size LessR}
+Plot(MPGhiway, HP, size=MidPrice)
+```
+```{r Scatterplot Matrix LessR}
+Plot(c(MidPrice, MPGcity, MPGhiway, HP, Weight), fit="lm")
+```
+
+```{r Ordered Heat Map Matrix LessR}
+d2 <- subset(d, select=c(MidPrice, MPGcity, MPGhiway, HP, Weight))
+cr(d2)
+```
+
+```{r Stacked BarChart LessR}
+BarChart(Type, by=Airbags)
+```
+
+```{r Stacked BarChart ggplot}
+ggplot(d, aes( Type, fill=Airbags)) + geom_bar()
+```
+
+```{r Unstacked BarChart LessR}
+BarChart(Type, by=Airbags, beside=TRUE)
+```
+```{r Unstacked BarChart ggplot}
+ggplot(d, aes( Type, fill=Airbags)) + geom_bar(position="dodge")
+```
+
+```{r 100% Stacked BarChart LessR}
+BarChart(Type, by=Airbags, stack100=TRUE)
+```
+
+```{r 100% Stacked BarChart LessR}
+BarChart(MPGcity, by=Type, stack100=TRUE)
+```

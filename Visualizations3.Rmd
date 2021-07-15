@@ -1,0 +1,110 @@
+---
+title: "Visualizations 3"
+author: "Jason Reese"
+---
+
+```{r setup, include=FALSE}
+library(lessR)
+library(tidyverse)
+library(devtools)
+library(rnaturalearth)
+library(rnaturalearthhires)
+library(sf)
+library(ggrepel)
+library(ggmap)
+library(rgeos)
+library(maps)
+library(mapdata)
+```
+
+```{r read Cereal data}
+d <- Read("https://raw.githubusercontent.com/Jsr5126/DS-Portfolio/main/Cereal.csv")
+```
+
+```{r Run Chart}
+Plot(Weight, run=TRUE)
+```
+
+```{r read covid data}
+d <- Read("https://raw.githubusercontent.com/Jsr5126/DS-Portfolio/main/covid.csv")
+```
+
+```{r subset}
+d <- d[.(geoId %in% c("US","BR","IT")), .(1,5,6,8,10)]
+```
+
+```{r Character String to Date}
+d$dateRep <- as.Date(d$dateRep, format="%d/%m/%Y")
+```
+
+```{r Date Range}
+range(d$dateRep)
+```
+```{r Time Series}
+dts <- d[.(geoId %in% "US"),]
+deaths.ts <-ts(dts$deaths, frequency=365, start=c(2019,11))
+Plot(deaths.ts)
+```
+
+```{r Trellis Time Series}
+Plot(dateRep, deaths, by1=geoId, n_col=1, fill="on")
+```
+
+```{r read cities15000 data, include=FALSE}
+d <- Read("https://raw.githubusercontent.com/Jsr5126/DS-Portfolio/main/cities15000.txt", 
+          col.names = c("id","name", "ascii_name","alt_names","latitude",
+                        "longitude", "feature_class", "feature", "country.code", 
+                        "cc2", "admin1","admin2","admin3", "admin4",
+                        "population", "elevation","dem","timezone","mod_date"))
+```
+
+```{r subset}
+d <- d[.(country.code %in% "GB"), .(2,5,6,15,16)]
+d <- d[.(population>500000), ]
+```
+
+```{r Google API}
+register_google(key="AIzaSyBuAeeBacoM_KWCh7MCqCip17tb2XsVhJE")
+has_google_key()
+```
+```{r Map pop data}
+gb <- ne_states(country="united kingdom", returnclass="sf")
+```
+
+```{r Map and City pop Combine}
+cities <- st_as_sf(d, coords = c("longitude", "latitude"), crs=st_crs(gb), remove=FALSE)
+cities <- cities[.(population>500000), ]
+head(cities)
+```
+```{r Mapping pop}
+ggplot() +
+  geom_sf(data=gb, fill="azure", color="burlywood", size=.2) +
+  geom_sf(aes(size=population), data=cities, alpha=.7) + scale_size_area() +
+  geom_text_repel(data=cities, aes(longitude,latitude, label=name), size=3.75, col="black")
+```
+
+```{r read covidUSA data, include=FALSE}
+covid <- Read("https://raw.githubusercontent.com/Jsr5126/DS-Portfolio/main/covid19USA.csv")
+```
+
+```{r Choropleth}
+usa <- st_as_sf(map("state", plot = FALSE, fill = TRUE))
+ggplot() + geom_sf(data = usa)
+```
+```{r Choropleth}
+states <- st_as_sf(map("state", plot=FALSE, fill=TRUE))
+```
+
+```{r lowercase}
+covid$State <- tolower(covid$State)
+```
+
+```{r merge}
+states = merge(states, covid, by.x="ID", by.y="State")
+```
+
+```{r Choropleth }
+ggplot() +
+  geom_sf(data=states, aes(fill=Deaths1M)) +
+  scale_fill_gradient(low="gray95", high="gray5")
+```

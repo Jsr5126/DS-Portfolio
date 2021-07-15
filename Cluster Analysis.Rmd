@@ -1,0 +1,54 @@
+---
+title: "Cluster Analysis"
+author: "Jason Reese"
+---
+##Getting Data
+```{r library, include=FALSE}
+library(lessR)
+library(tidyverse)
+```
+
+```{r read/subset data, include=FALSE}
+pass <- Read("https://raw.githubusercontent.com/Jsr5126/DS-Portfolio/Data/RawPassing.csv")
+```
+
+##Data Manipulation
+```{r echo=T, message=FALSE, results='hide'}
+pass_s <- unite(pass, Player, c("Year", "Player"), sep=" ", remove=FALSE)
+pass_s <- pass_s[pass_s$Year>2019, ]
+pass_s <- pass_s[pass_s$GS>12, ]
+pass_r <- pass_s[,c(7,28)]
+rownames(pass_s) <- pass_s[ ,1]
+rownames(pass_r) <- pass_s[ ,1]
+pass_s <- pass_s[,c(11:13,15,19)]
+```
+The purpose of this project is doing a cluster analysis of passing statistics from every passer in the NFL from the years 2010-2020. I filtered out all the non-quarterback and those that did not start a single game.
+
+Here, I combined the first two variables of Player name and Year and united them, filtered only to the year 2020 (more on that later) and those that started at least 13 games (this represents 3/4 of the season). I made the rownames the Year and Player name that I combined above and subsetted the data set to only be the relevant variables. I created a second subset "dr" to include two variables for a second cluster I wanted to compare to my first cluster analysis. 
+
+##Cluster Analysis
+```{r cluster}
+x <- scale(pass_s)
+x <- dist (as.matrix(pass_s), method="maximum")
+hc <- hclust(x, method="ward.D")
+```
+Here I scaled the dataset to reduce the impact of the varying magnitude of values, found the distance between the variables and applied hierarchical clustering.  \newpage
+
+##Plot
+```{r cluster plot, echo=TRUE}
+plot(hc, hang=-1, xlab="Player", sub="")
+```
+My filtering resulted in 22 players clustered into what I see to be is 4 main tiers based on the variables I chose. Looking at them, the make sense to me as an avid football watcher. The is a top tier of the elites, a bottom tier of the scrubs and a mess in the middle that was broken down into two clusters.
+
+There is a statistic ANY/A (adjusted net yards per passing attempt) that does a weighted average of every passing attempt and has been used as a strong barometer of performance for a couple years now. I created my cluster analysis based on the sub-components of this stat. The average of the league is generally around 5.5.
+
+I found two clusters to be of note. The first was Matt Ryan in the top tier and Ben Roethlisberger in the 3rd tier. While sacks are important, they were the most uncontrollable stat by the quarterback in my dataset. I removed them and found my results to be more in line with what I thought to be as a reflection of only the players performance. Matt Ryan was dropped to the bottom half of the top tier and Ben Roethlisberger stayed in the same cluster\newpage
+
+##Second Cluster and Plot
+```{r adjusted cluster, echo=TRUE}
+y <- scale(pass_r)
+y <- dist (as.matrix(pass_r), method="maximum")
+hd <- hclust(y, method="ward.D")
+plot(hd, hang=-1, xlab="Player", sub="")
+```
+In this second cluster, I took the actual ANY/A from my dataset to do a second cluster. I included game started because with only one variable, my subset dr was a vector and not able to be clustered. I chose games started because it was the least varied from player to player because of my earlier filtering of >12 Games Started and it seemed relevant for this analysis. If a player cannot be healthy enough to start then clustering of stats is inconsequential. I was surprised how much shuffling of the clusters occurred. Matt Ryan isn't as elite and unfortunately, Ben Roethlisberger isn't either. I found my second cluster to be the most accurate based on my own perspective and there seemed to be no outliers. Matt Ryan is a good QB, but not elite and that is shown. The best two QBs in the league are clustered together. All of those in the bottom tier seem appropriately placed. 

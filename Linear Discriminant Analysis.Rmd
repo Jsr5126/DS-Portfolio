@@ -1,0 +1,54 @@
+---
+title: "Linear Discriminant Analysis"
+author: "Jason Reese"
+---
+##Getting Data
+```{r library, include=FALSE}
+library(MASS)
+library(lessR)
+library(tidyverse)
+library(pander)
+library(devtools)
+```
+
+```{r read/subset data, include=FALSE}
+sgr <- Read("https://raw.githubusercontent.com/Jsr5126/DS-Portfolio/Data/Schedule%20%26%20Game%20Results.txt")
+sgr_s <- sgr[-4, ]
+sgr_s <- mutate(sgr_s,"FDm" = o1stD-d1stD)
+sgr_s <- mutate(sgr_s,"PYm" = oPassY-dPassY)
+sgr_s <- mutate(sgr_s,"RYm" = oRushY-dRushY)
+sgr_s <- mutate(sgr_s,"TOm" = dTO-oTO)
+sgr_f <- sgr_s[,c(6,26:29)]
+```
+The purpose of this project is doing a linear discriminant analysis of NFL team stats from the entire 2020 year for the Pittsburgh Steelers with the intention of finding the probability of a Win or a loss based on the predicting variables.The predictor variables I went with were the subtracted differences (margins) between four key stats on offense and defense. In all four variables, the formula was: 
+\begin{align}TeamStat - OppositionStat\end{align}
+They are the first down margin, pass yards margin, rush yards margin, and turnover margin. The reason for the margin being chosen is that in any given Win/Loss scenario, no single statistic is fully descriptive of outcome without its respective opposition's statistic. In many scenarios, a team's statistic could be low in one category because of the defenses efficiency and in a different category higher because of the defenses inefficiency. I.E there is less need to run the ball if the defense is poor in pass defense.\newpage
+
+```{r head}
+pander(head(sgr_f))
+```
+##Linear Discriminant Analysis Model
+```{r lda model}
+model <- lda(X.2~FDm+PYm+RYm+TOm,data = sgr_f)
+model
+```
+Based on the stats for the year, the predicted win percent is 0.706, which would result in 11.29 wins in the regular season out of 16 games (Reminder, week 4 isn’t shown because the team didn’t play). In reality, the team ended with 12 wins. Without looking at the results of the analysis, I would predict that there was
+at least one game that the team was predicted to lose that they won. I’ll highlight that when I get to the predictions of each game (the X.2 variable).
+Looking at the means, I found that the teams margins weren’t are large in wins as they were in losses. I interpret this as getting blown out in losses and sneaking by in wins. To interpret this as a course of action for the team, the difference between the margins in Wins and Losses is largest in Rush Yard margin. I would suggest in the next season to improve the running game. Rushing tends to be a factor in early and late game success. If you can’t run early in the game, teams tend to pass their way out of the statistical "hole". In an end game scenario when the team is winning, teams tend to run out the clock by running the ball.
+
+##Plot of LD1 in Loss and Win
+```{r plot ld1, echo=TRUE}
+plot(model)
+```
+##Model Predictions
+```{r model prediction, echo=TRUE}
+predictions <- model %>% predict(sgr_f)
+pander(predictions)
+```
+As I anticipated, there were two games that the team was favored to lose that they won (Week 2 & 7). Looking at LD1, these two games were negative despite being wins. This means that the margins of the predictive variables in those two games predicted the team to lose, but they won despite of it. A deeper dive into those games specifically would be needed to see what factor determined the outcome.
+
+##Plot Principal Component Analysis
+```{r plot pca}
+ord <- prcomp(sgr_s[,c(26:29)])
+ggord(ord, sgr_f$X.2)
+```
