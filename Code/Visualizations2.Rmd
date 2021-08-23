@@ -9,7 +9,7 @@ library(tidyverse)
 ```
 
 ```{r read, include=FALSE}
-d <- Read("https://raw.githubusercontent.com/Jsr5126/DS-Portfolio/main/Cars93.csv")
+d <- Read("https://raw.githubusercontent.com/Jsr5126/DS-Portfolio/main/Data/Cars93.csv")
 ```
 
 ```{r Histogram LessR}
