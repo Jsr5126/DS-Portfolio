@@ -18,7 +18,7 @@ library(mapdata)
 ```
 
 ```{r read Cereal data}
-d <- Read("https://raw.githubusercontent.com/Jsr5126/DS-Portfolio/main/Cereal.csv")
+d <- Read("https://raw.githubusercontent.com/Jsr5126/DS-Portfolio/main/Data/Cereal.csv")
 ```
 
 ```{r Run Chart}
@@ -26,7 +26,7 @@ Plot(Weight, run=TRUE)
 ```
 
 ```{r read covid data}
-d <- Read("https://raw.githubusercontent.com/Jsr5126/DS-Portfolio/main/covid.csv")
+d <- Read("https://raw.githubusercontent.com/Jsr5126/DS-Portfolio/main/Data/covid")
 ```
 
 ```{r subset}
@@ -51,7 +51,7 @@ Plot(dateRep, deaths, by1=geoId, n_col=1, fill="on")
 ```
 
 ```{r read cities15000 data, include=FALSE}
-d <- Read("https://raw.githubusercontent.com/Jsr5126/DS-Portfolio/main/cities15000.txt", 
+d <- Read("https://raw.githubusercontent.com/Jsr5126/DS-Portfolio/main/Data/cities15000", 
           col.names = c("id","name", "ascii_name","alt_names","latitude",
                         "longitude", "feature_class", "feature", "country.code", 
                         "cc2", "admin1","admin2","admin3", "admin4",
@@ -84,7 +84,7 @@ ggplot() +
 ```
 
 ```{r read covidUSA data, include=FALSE}
-covid <- Read("https://raw.githubusercontent.com/Jsr5126/DS-Portfolio/main/covid19USA.csv")
+covid <- Read("https://raw.githubusercontent.com/Jsr5126/DS-Portfolio/main/Data/covid19USA.csv")
 ```
 
 ```{r Choropleth}
