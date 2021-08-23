@@ -1,5 +1,5 @@
 ui <- fluidPage(
-    titlePanel("JReese_HW4"),
+    titlePanel("JReese_Shiny"),
     sidebarLayout(
         sidebarPanel(
             sliderInput("bins",
