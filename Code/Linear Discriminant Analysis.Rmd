@@ -12,7 +12,7 @@ library(devtools)
 ```
 
 ```{r read/subset data, include=FALSE}
-sgr <- Read("https://raw.githubusercontent.com/Jsr5126/DS-Portfolio/Data/Schedule%20%26%20Game%20Results.txt")
+sgr <- Read("https://raw.githubusercontent.com/Jsr5126/DS-Portfolio/main/Data/ScheduleandResults.csv")
 sgr_s <- sgr[-4, ]
 sgr_s <- mutate(sgr_s,"FDm" = o1stD-d1stD)
 sgr_s <- mutate(sgr_s,"PYm" = oPassY-dPassY)
