@@ -1,0 +1,85 @@
+There are five issues with the ASN, but what I believe to be the cause of the error is the Namespace is incorrect. 
+You have entered the Endpoint URL in the Namespace field:
+
+		<?xml version="1.0" encoding="UTF-8"?>
+		<ns0:MT_IF72_ASN_REQ
+			xmlns:ns0="https://ABCD-iservices.prd.companyX.com:321/SAPapi/if72/inboundASN">
+			<Login>
+				<UserID>Test_123</UserID>
+				<Password>qpZ=:&amp;amp;yfVs3kDw</Password>
+			</Login>
+
+Please reference the attached Sample ASN for the correct namespace and formatting.
+ 
+
+Two:
+Not your fault, but ampersand and/or equals symbols in your passwords can cause issues with the webservice call. This looks to be the case so I changed your password. 
+The new password is: 
+QU3x;6vj4~}#J([^
+
+Three:
+<PackingListNumber> has only the end tag. 
+		
+		<ShipFromID>ABC123</ShipFromID>
+		</PackingListNumber>
+		<ShipFromName>CompanyX</ShipFromName>
+
+This field is optional, but typically we don’t see tags of optional fields when there is no populated data. 
+ 
+
+
+Four:
+<PackageID> format is incorrect. The <PackageID> in the ASN and on the label for PDC shipments need to prefixed with <ShipFromID> (vendor code) +  <ShipToID> 
+ 		
+		<Package>
+			<PackageID>26081</PackageID>
+			<Quantity>4</Quantity>
+		</Package>
+
+Please reference the attached Label Compliance document for additional information
+ 
+
+Five:
+You cannot reference the same <OrderNumber> and <PartNumber> on two different <Item> segments in the ASN
+ 		
+		<Item>
+			<LineNumber>2</LineNumber>
+			<OrderNumber>4604890981</OrderNumber>
+			<PartNumber>KIT2038</PartNumber>
+			<Quantity>4</Quantity>
+			<CountryOfOrigin>US</CountryOfOrigin>
+			<Package>
+				<PackageID>26081</PackageID>
+				<Quantity>4</Quantity>
+			</Package>
+		</Item>
+		<Item>
+			<LineNumber>3</LineNumber>
+			<OrderNumber>4604890981</OrderNumber>
+			<PartNumber>KIT2038</PartNumber>
+			<Quantity>6</Quantity>
+			<CountryOfOrigin>US</CountryOfOrigin>
+			<Package>
+				<PackageID>26081</PackageID>
+				<Quantity>6</Quantity>
+			</Package>
+		</Item>
+
+If you need to split the quantity of a <PartNumber> within different <PackageIDs>, you need to reference the <PackageID> within the same segment as such:
+Notice the quantity breakdown:
+
+		<Item>
+                    <LineNumber>01</LineNumber>
+                    <OrderNumber>4604890981</OrderNumber>
+                    <PartNumber>KIT2038</PartNumber>
+                    <Quantity>10</Quantity>
+                   <CountryOfOrigin>CN</CountryOfOrigin>
+                    <Package>
+                        <PackageID>ABC123FL2426081</PackageID>
+                        <Quantity>4</Quantity>
+                    </Package>
+                     <Package>
+                        <PackageID>ABC123FL2426081</PackageID>
+                        <Quantity>6</Quantity>
+                    </Package>
+                </Item>
