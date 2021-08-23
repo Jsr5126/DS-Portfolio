@@ -9,7 +9,7 @@ library(tidyverse)
 ```
 
 ```{r read/subset data, include=FALSE}
-pass <- Read("https://raw.githubusercontent.com/Jsr5126/DS-Portfolio/Data/RawPassing.csv")
+pass <- Read("https://raw.githubusercontent.com/Jsr5126/DS-Portfolio/main/Data/RawPassing.csv")
 ```
 
 ##Data Manipulation
