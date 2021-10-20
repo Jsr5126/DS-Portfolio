@@ -1,0 +1,197 @@
+---
+author: "Jason Reese"
+date: "10/19/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+## Setup
+```{r Packages, message=FALSE, warning=FALSE}
+library(tufte, quietly=TRUE)
+library(tint, quietly=TRUE)
+library(knitr, quietly=TRUE)
+library (gridExtra, quietly=TRUE)
+library (ROI, quietly = TRUE)      
+library (ROI.plugin.glpk, quietly = TRUE) 
+library (ompr, quietly = TRUE)     
+library (ompr.roi, quietly = TRUE) 
+library (magrittr, quietly = TRUE)
+library (pander, quietly = TRUE)
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(tidy = FALSE)
+knitr::opts_chunk$set(cache = FALSE)
+knitr::opts_chunk$set(width = 30)
+```
+
+## 3.1a Description of problem
+Four manufacturing plants are supplying material for distributors in
+four regions. 
+
+The four distributors are in:
+\begin{itemize}
+    \item Chicago
+    \item Beaverton
+    \item Eugene
+    \item Dallas
+\end{itemize}
+
+The four supply plants are located in:
+\begin{itemize}
+    \item PDX (Portland)
+    \item SEA (Seattle)
+    \item MSP (Minneapolis)
+    \item ATL (Atlanta)
+\end{itemize}
+
+Each manufacturing plant has a maximum amount that they can produce:
+\begin{itemize}
+    \item Chicago can produce 500u
+    \item Beaverton can produce 500u
+    \item Eugene can produce 500u
+    \item Dallas can produce 600u
+\end{itemize}
+
+Each distributor has a maximum amount that they can handle:
+\begin{itemize}
+    \item PDX can handle up to 700u
+    \item SEA can handle up to 500u
+    \item MSP can handle up to 500u
+    \item ATL can handle up to 600u
+\end{itemize}
+
+Formulate an explicit model for the above application that solves
+this transportation problem to find the lowest cost way of transporting
+as much as product as we can to distributors.
+
+## 3.1b Mathematical model
+
+C = Cost
+
+S = Supply
+
+D = Demand
+
+i = Supply Node:
+
+j = Demand Node:
+\bigskip
+
+The goal of the model is to minimize the sum of the cost of shipping 
+\newline from node i to node j for all:
+\newline $\sum_{C_{i,j}}\forall$ 
+
+...when the sum of supply from node i to node j for all is equal to 
+\newline the sum of demand from node i to node j for all:
+\newline $\sum_{S_{i,j}}\forall$ = $\sum_{D_{i,j}}\forall$
+\bigskip
+
+Supply is constrained when the sum of supply from node i to node j for all 
+\newline is less than the sum of demand from node i to node j for all:
+\newline $\sum_{S_{i,j}}\forall$ < $\sum_{D_{i,j}}\forall$
+\bigskip
+
+Demand is constrained when the sum of supply from node i to node j for all 
+\newline is greater than the sum of demand from node i to node j for all:
+\newline $\sum_{S_{i,j}}\forall$ > $\sum_{D_{i,j}}\forall$
+\newpage
+
+## 3.1c Implementation of model
+```{r Model Setup}
+#creating empty model
+r <- MIPModel() %>%
+  #adding variables
+  add_variable(CxP, type = "continuous", lb = 0) %>% #Chicago to x
+    add_variable(CxS, type = "continuous", lb = 0) %>%
+    add_variable(CxM, type = "continuous", lb = 0) %>%
+    add_variable(CxA, type = "continuous", lb = 0) %>%
+  add_variable(BxP, type = "continuous", lb = 0) %>% #Beaverton to x
+    add_variable(BxS, type = "continuous", lb = 0) %>%
+    add_variable(BxM, type = "continuous", lb = 0) %>%
+    add_variable(BxA, type = "continuous", lb = 0) %>%
+  add_variable(ExP, type = "continuous", lb = 0) %>% #Eugene to x
+    add_variable(ExS, type = "continuous", lb = 0) %>%
+    add_variable(ExM, type = "continuous", lb = 0) %>%
+    add_variable(ExA, type = "continuous", lb = 0) %>%
+  add_variable(DxP, type = "continuous", lb = 0) %>% #Dallas to x
+    add_variable(DxS, type = "continuous", lb = 0) %>%
+    add_variable(DxM, type = "continuous", lb = 0) %>%
+    add_variable(DxA, type = "continuous", lb = 0) %>%
+#setting model objective
+  set_objective(20*CxP + 21*CxS + 8*CxM + 12*CxA + #Chicago costs
+                6*BxP + 7*BxS + 18*BxM + 24*BxA + #Beaverton costs
+                8*ExP + 10*ExS + 22*ExM + 28*ExA + #Eugene costs
+                16*DxP + 26*DxS + 15*DxM + 5*DxA, "min") %>% #Dallas costs
+#setting model constraints
+  add_constraint(CxP + CxS + CxM + CxA == 500) %>% #supply
+    add_constraint(BxP + BxS + BxM + BxA == 500) %>% 
+    add_constraint(ExP + ExS + ExM + ExA == 500) %>% 
+    add_constraint(DxP + DxS + DxM + DxA == 600) %>% 
+  add_constraint(CxP + BxP + ExP + DxP <= 700) %>% #capacity
+    add_constraint(CxS + BxS + ExS + DxS <= 500) %>% 
+    add_constraint(CxM + BxM + ExM + DxM <= 500) %>% 
+    add_constraint(CxA + BxA + ExA + DxA <= 600) %>%
+#solve
+solve_model(with_ROI(solver = "glpk"))
+```
+All variables were created with the convention of "Origin X Destination" and a lower bound of 0.
+
+The objective was set to minimize shipment cost.
+
+I assumeded shipment costs allow for unlimited volume. Therefore, the constraints were set to ship all of available capacity for each shipment node and keep the received volume at each distributor less than or equal to the capacity.
+\newpage
+
+## 3.1d Solution
+The below function outputs the output status of the model. Here we see the models output is optimal.
+```{r Model Status}
+solver_status(r)
+```
+The below function outputs the numerical output of the model objective. Here we see the models output is 14300 units of shipping cost.
+```{r Model Solution}
+objective_value(r)
+```
+Individual solution values are hidden to be placed in a summary table in the next section. 
+```{r Solution Values, echo=T, results='hide'}
+# xP Values
+get_solution(r, CxP)
+get_solution(r, BxP)
+get_solution(r, ExP)
+get_solution(r, DxP)
+# xS Values
+get_solution(r, CxS)
+get_solution(r, BxS)
+get_solution(r, ExS)
+get_solution(r, DxS)
+# xM Values
+get_solution(r, CxM)
+get_solution(r, BxM)
+get_solution(r, ExM)
+get_solution(r, DxM)
+# xA Values
+get_solution(r, CxA)
+get_solution(r, BxA)
+get_solution(r, ExA)
+get_solution(r, DxA)
+```
+\newpage
+
+## 3.1e Summary Table
+```{r Summary Table}
+#Quantifying
+NSupply <- 4 
+NDest <- 4
+#Naming Suppliers
+snames <- list("Chicago", "Beaverton", "Eugene", "Dallas")
+#Naming Distributors
+dnames <- list("PDX", "SEA", "MSP", "ATL")
+#Assigning Cost To Supplier x Distributor matrix
+Cost <- matrix (c(0, 200, 500, 0, 
+                  0, 300, 0, 0, 
+                  500, 0, 0, 0, 
+                  0, 0, 0, 600),
+                nrow = NSupply,
+                dimnames =list(snames,dnames))
+pander(Cost)
+```
+## 3.1e Discussion
+
+The result is as logical as one could assume. All manufacturing plants shipped their capacity to the supply plants in their closest proximity. The one outlier is Beaverton which split its capacity between PDX and SEA. This is a function of allowing Eugene to fully allocate its volume to its closest supply plant (PDX), Beaverton maximizing PDX's remaining capacity and sending the rest to the next closest supply plant. 
