@@ -1,0 +1,105 @@
+Public S As Object 'S replaces session (SAP VB Script Recorder) This is just for shorter code
+Sub Pull_All_SAP()
+Application.DisplayAlerts = False
+SAP_Start
+End Sub
+'This is a generic function to open and log into SAP
+Function SAP_Start()
+Dim System As String, Client As String, Usr As String, Pass As String
+System = "108-SP1-Production"
+Client = "200"
+Usr = "Jsr5126"
+Pass = "Password"
+Set SapApp = CreateObject("Sapgui.ScriptingCtrl.1")
+Set Conn = SapApp.OpenConnection(System, True)
+Set S = Conn.Children(0)
+S.findById("wnd[0]/usr/txtRSYST-MANDT").Text = Client
+S.findById("wnd[0]/usr/txtRSYST-BNAME").Text = Usr
+S.findById("wnd[0]/usr/pwdRSYST-BCODE").Text = Pass
+S.findById("wnd[0]/usr/txtRSYST-LANGU").Text = "EN"
+S.findById("wnd[0]").sendVKey 0
+'Run SAP Download Routines, These are responsible for exporting data out of SAP
+Kill "C:\Users\Jsr5126\OneDrive\General\Data Storage\*.txt"
+Call Spool
+Application.CutCopyMode = False
+Set S = Nothing
+Set Conn = Nothing
+Set SapApp = Nothing
+End Function
+'Report Selection Loop
+Sub Spool()
+Dim Path As String, Name As String, Rpt As String, sTime As String, eTime As String, I As Integer, Usr As String
+sTime = Format(Time + TimeSerial(0, -30, 0), "HH:mm:ss")
+eTime = Format(Time + TimeSerial(0, 30, 0), "HH:mm:ss")
+Debug.Print sTime & "_" & eTime
+For I = 1 To 4 '---------------# of Reports
+    Usr = "Jsr5126"
+    Path = "C:\Users\" & Environ("UserName") & "\OneDrive\General\Data Storage\Data Storage\"
+    If I = 1 Then
+        Path = Path
+        Name = "MB51_REFURB.txt"
+        Rpt = "MB51_REFURB"
+    End If
+    If I = 2 Then
+        Path = Path
+        Name = "RFB_OBJ.txt"
+        Rpt = "RFB_OBJ"
+    End If
+    If I = 3 Then
+        Path = Path
+        Name = "MB51_SCRAP.txt"
+        Rpt = "MB51_SCRAP"
+    End If
+    'If TimeValue(Now) > TimeValue("7:00:00") Then GoTo E:
+    If I = 4 Then
+        Path = Path
+        Name = "Backlog.txt"
+        Rpt = "/SBDSP1/SSD002"
+        sTime = ""
+        eTime = ""
+    End If
+    Execute Path, Name, Rpt, sTime, eTime, Usr
+E:
+Next I
+End Sub
+'SM37 Download Routine
+Sub Execute(Path As String, Name As String, Rpt As String, sTime As String, eTime As String, Usr As String)
+'T-Code
+S.StartTransaction "SM37"
+'UserName
+S.findById("wnd[0]/usr/txtBTCH2170-USERNAME").Text = Usr
+'Job Status Selections
+S.findById("wnd[0]/usr/chkBTCH2170-SCHEDUL").Selected = False
+S.findById("wnd[0]/usr/chkBTCH2170-READY").Selected = False
+S.findById("wnd[0]/usr/chkBTCH2170-RUNNING").Selected = False
+S.findById("wnd[0]/usr/chkBTCH2170-ABORTED").Selected = False
+S.findById("wnd[0]/usr/txtBTCH2170-JOBNAME").Text = Rpt
+'If sTime = "" Then
+    'S.findById("wnd[0]/usr/ctxtBTCH2170-FROM_DATE").Text = Format(DateAdd("d", -1, Date), "MM/DD/YYYY")
+'End If
+'S.findById("wnd[0]/usr/ctxtBTCH2170-FROM_TIME").Text = sTime
+'S.findById("wnd[0]/usr/ctxtBTCH2170-TO_TIME").Text = eTime
+S.findById("wnd[0]/tbar[1]/btn[8]").press
+'-------------------------------------------------No Report Exists
+On Error GoTo E:
+S.findById("wnd[0]/usr/chk[1,13]").Selected = True
+On Error GoTo 0
+'-----------------------------------------------------------------
+S.findById("wnd[0]").sendVKey 44
+S.findById("wnd[0]/usr/chk[1,3]").Selected = True
+S.findById("wnd[0]/usr/chk[1,3]").SetFocus
+S.findById("wnd[0]").sendVKey 6
+S.findById("wnd[0]").sendVKey 48
+S.findById("wnd[1]/tbar[0]/btn[0]").press
+S.findById("wnd[1]/usr/ctxtDY_PATH").Text = Path
+S.findById("wnd[1]/usr/ctxtDY_FILENAME").Text = Name
+S.findById("wnd[1]").sendVKey 11
+Exit Sub
+E:
+'If Error Export Loop
+Set fs = CreateObject("Scripting.FileSystemObject")
+Set a = fs.CreateTextFile("C:\Users\" & Environ("UserName") & "\Desktop\" & Name & ".txt", True)
+
+a.WriteLine (Now & "   " & Err)
+a.Close
+End Sub
