@@ -45,3 +45,21 @@ Query a list of CITY names from STATION for cities that have an even ID number. 
 SELECT DISTINCT CITY
 FROM STATION
 WHERE MOD(ID,2) = 0;
+
+Challenge #9 - Weather Observation Station 4
+Find the difference between the total number of CITY entries in the table and the number of distinct CITY entries in the table.
+SELECT COUNT(CITY) - COUNT(DISTINCT (CITY))
+FROM STATION;
+
+Challenge #10 - Weather Observation Station 5
+Query the two cities in STATION with the shortest and longest CITY names, as well as their respective lengths (i.e.: number of characters in the name). 
+If there is more than one smallest or largest city, choose the one that comes first when ordered alphabetically.
+SELECT CITY, Length(CITY)
+FROM STATION 
+ORDER By Length(CITY) asc, CITY asc limit 1;
+
+SELECT CITY, Length(CITY)
+FROM STATION 
+ORDER By Length(CITY) desc, CITY asc limit 1;
+
+
