@@ -78,7 +78,7 @@ Notice the quantity breakdown:
                         <PackageID>ABC123FL2426081</PackageID>
                         <Quantity>4</Quantity>
                     </Package>
-                     <Package>
+                    <Package>
                         <PackageID>ABC123FL2426081</PackageID>
                         <Quantity>6</Quantity>
                     </Package>
